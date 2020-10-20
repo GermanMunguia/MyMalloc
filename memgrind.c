@@ -4,28 +4,31 @@
 
 int main() {
 
-	char* ptr = malloc(15*sizeof(char));
-	for(int i = 0; i < 15; i++) {
+	void* ptrNULL;
+	free(ptrNULL);
+
+	char* ptr = malloc(10*sizeof(char));
+	for(int i = 0; i < 10; i++) {
 		ptr[i] = 'a'; 
 	}
-	int* ptr2 = malloc(10*sizeof(int));
-	for(int i = 0; i < 10; i++) {
-		ptr2[i] = 2; 
+	char* ptr2 = malloc(20*sizeof(char));
+	for(int i = 0; i < 20; i++) {
+		ptr2[i] = 'b'; 
 		
 	}
-	char* ptr3 = malloc(20*sizeof(char));
-	for(int i = 0; i < 20; i++) {
-		ptr3[i] = 'x'; 
+	int* ptr3 = malloc(8*sizeof(int));
+	for(int i = 0; i < 8; i++) {
+		ptr3[i] = 50; 
 		
 	}
 
-	char* ptr4 = malloc(2*sizeof(char));
-	for(int i = 0; i < 2; i++) {
+	char* ptr4 = malloc(4*sizeof(char));
+	for(int i = 0; i < 4; i++) {
 		ptr4[i] = 'y'; 
 		
 	}
 
-
+	free(ptr3);
 			
 
 	printf("pointer to ptr %p\n", ptr);

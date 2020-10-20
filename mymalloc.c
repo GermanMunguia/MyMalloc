@@ -13,16 +13,45 @@ typedef struct meta {
 
 static char myblock[4096];
 
+//free the ptr that was previously allocated with mymalloc, check for all possible errors. 
+void myfree(void* ptr, char* file, int line) {
+	//(1) if null, do nothing
+	if(ptr == NULL) {
+		return; 
+	}
+	
+	//run through the meta data, check if given pointer exist or is being used. 
+	void* ptrBlock = myblock; 
+	int memSize = 0; 
+	for(meta *crnt = ptrBlock; crnt != NULL; crnt = crnt->next ) {
+		printf("crnt ptr located at: %p\n", &crnt);
+		printf("	inUse: %p\n", (&crnt->inUse));
+		printf("	size: %p	size=%d\n", &crnt->size, crnt->size);
+		printf("	next: %p\n", &crnt->next);
+		printf("	should be:%p\n", (myblock+memSize) );
+		printf("	memSize: %d\n", memSize);	
+		memSize = memSize + sizeof(meta) + crnt->size;
+	}
 
-int pop = 0; 
 
+}
 
 //return a void pointer 
 void* mymalloc(size_t size, char* file, int line) {
 
+	//create a pointer to the begining of the block, if the has a size initiallized to zero, then it must be empty and it is the first call to malloc
+	void *f = myblock;
+	meta *isEmpty = f; 
 	//the array is empty
-	if(pop == 0) {
+	if(isEmpty->size == 0) {
 		//create a new struct to hold the first block allocated. 
+		meta* front = (meta*) myblock; 
+		front->inUse = 1; 
+		front->size = size; 
+		front->next = NULL;
+		void* ptr = myblock+sizeof(meta); 
+		printf("first meta located at: %p\n", &front);
+		/*
 		meta front;
 		front.inUse = 1; 
 		front.size = size;
@@ -32,7 +61,7 @@ void* mymalloc(size_t size, char* file, int line) {
 		memcpy(myblock, &front, sizeof(front));
 		//create the unspecified pointer that will be returned for the user. 
 		void* ptr = myblock+sizeof(front);
-		pop = 1;
+		*/
 
 		if(DEBUG) {
 			printf("	BLOCK BEINGS: %p	Ends: %p\n", myblock, myblock+4096);
@@ -70,8 +99,6 @@ void* mymalloc(size_t size, char* file, int line) {
 			}
 
 			//There is enough memory, create more metadata to account for it.
-			
-			// This code words but uses malloc
 
 			printf("        New Meta appended after %d for size %ld at index: %d\n", crnt->size, size, memUsed);	
 			meta *temp = (meta*) myblock+memUsed;  
@@ -80,7 +107,8 @@ void* mymalloc(size_t size, char* file, int line) {
 			temp->next = NULL;
 		 	//copy the mem to the array
 			printf("memcpy to address: %p\n", &temp);
-//			memcpy(myblock+memUsed, &temp, sizeof(meta));
+			memcpy(myblock+memUsed, &temp, sizeof(meta));
+			printf("address after memcpy: %p\n", &temp);
 //			printf("after memcpy, crnt size = %d\n", crnt->size);
 			//creates a pointer to the struct in order to add it to the end of the link. 
 			crnt->next = temp;
@@ -88,7 +116,7 @@ void* mymalloc(size_t size, char* file, int line) {
 			//return the unspecified pointer.
 			
 			if(DEBUG) {
-				for(int i = 0; i < 180; i++) {
+				for(int i = 0; i < 4096; i++) {
 					printf(" %d", myblock[i]);
 				}
 				printf("\n");
@@ -110,48 +138,5 @@ void* mymalloc(size_t size, char* file, int line) {
 	return NULL;  	
 }
 
-/*
-int main() {
-
-//	ran();
-	
-	char* ptr = malloc(15*sizeof(char)); 
-
-	
-	printf("sizeof struct: %lu\n", sizeof(meta));
-	int *ptr = mymalloc(10*sizeof(int));
-	ptr[0] = 'x';
-	ptr[1] = 'x';
-	ptr[8] = 'x'; 
-     	ptr[9] = 'x'; 
-	char *ptr2 = mymalloc(12*sizeof(char));
-	ptr2[0] = 'a'; 
-	ptr2[1] = 'a'; 
-	ptr2[11] = 'a'; 
-	char *ptr3 = mymalloc(15*sizeof(char));
-	ptr3[0] = 'g'; 
-	ptr3[14] = 'g'; 
-
-	int *ptr4 = mymalloc(2*sizeof(int));
-	ptr4[0] = 22;
-	ptr4[1] = 22; 
-
-	char *ptr5 = mymalloc(500*sizeof(char));
-	ptr5[499] = '2'; 
-
-	printf("Address of myblock: %p    end of block: %p\n", myblock, myblock+4096);
-	printf("Address of block+size: %p\n", myblock+sizeof(meta));
-	printf("Address of returned pointer: %p\n", ptr3);
-	printf("the block: ");
-	
-	for(int i = 0; i < 200; i++) {
-		printf(" %d", myblock[i]);
-	}
-	printf("\n");
-	
-		
-} 
-
-*/
 
 
