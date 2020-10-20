@@ -2,13 +2,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "mymalloc.h"
-
 //struct that will hold metadata
 typedef struct meta { 
 	int inUse; 
 	int size; 
 	struct meta *next; 
 } meta;
+
+static char myblock[4096];
 
 
 int pop = 0; 
@@ -23,8 +24,9 @@ void ran() {
 
 
 //return a char pointer? 
-void* mymalloc(size_t size) {
-	
+void* mymalloc(size_t size, char* file, int line) {
+
+
 	//the array is empty
 	if(pop == 0) {
 		//create a new struct to hold the first block allocated. 
@@ -101,10 +103,14 @@ void* mymalloc(size_t size) {
 	return NULL;  	
 }
 
-
+/*
 int main() {
 
 //	ran();
+	
+	char* ptr = malloc(15*sizeof(char)); 
+
+	
 	printf("sizeof struct: %lu\n", sizeof(meta));
 	int *ptr = mymalloc(10*sizeof(int));
 	ptr[0] = 'x';
@@ -136,7 +142,9 @@ int main() {
 	}
 	printf("\n");
 	
+		
 } 
 
+*/
 
 
