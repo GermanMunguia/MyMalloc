@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "mymalloc.h"
+#define DEBUG 1
+
 //struct that will hold metadata
 typedef struct meta { 
 	int inUse; 
@@ -15,17 +17,8 @@ static char myblock[4096];
 int pop = 0; 
 
 
-void ran() {
-
-	myblock[0] = 'a'; 
-	myblock[2] = 'b';
-	myblock[16] = 'c';
-}
-
-
-//return a char pointer? 
+//return a void pointer 
 void* mymalloc(size_t size, char* file, int line) {
-
 
 	//the array is empty
 	if(pop == 0) {
@@ -40,6 +33,11 @@ void* mymalloc(size_t size, char* file, int line) {
 		//create the unspecified pointer that will be returned for the user. 
 		void* ptr = myblock+sizeof(front);
 		pop = 1;
+
+		if(DEBUG) {
+			printf("	BLOCK BEINGS: %p	Ends: %p\n", myblock, myblock+4096);
+		}
+		
 	       	return ptr;	
 	}
 
@@ -87,7 +85,16 @@ void* mymalloc(size_t size, char* file, int line) {
 			//creates a pointer to the struct in order to add it to the end of the link. 
 			crnt->next = temp;
 //			printf("Now crnt size = %d and next size = %d\n", crnt->size, crnt->next->size);
-			//return the unspecified pointer. 
+			//return the unspecified pointer.
+			
+			if(DEBUG) {
+				for(int i = 0; i < 180; i++) {
+					printf(" %d", myblock[i]);
+				}
+				printf("\n");
+	
+			}
+			
 			void *ptr = myblock+memUsed+sizeof(meta); 
 			return ptr; 
 			
