@@ -101,13 +101,17 @@ void* mymalloc(size_t size, char* file, int line) {
 			//There is enough memory, create more metadata to account for it.
 
 			printf("        New Meta appended after %d for size %ld at index: %d\n", crnt->size, size, memUsed);	
-			meta *temp = (meta*) myblock+memUsed;  
+			//MUST USE parenthesis for addition, otherwise it will add by a size of the struct. 		
+			meta *temp = (meta*) (myblock+memUsed);
+		       	
+
+		       	printf("being made in address: %p with a memUsed of %d\n", myblock+memUsed, memUsed);	
 			temp->size = size;
 			temp->inUse = 1;
 			temp->next = NULL;
 		 	//copy the mem to the array
 			printf("memcpy to address: %p\n", &temp);
-			memcpy(myblock+memUsed, &temp, sizeof(meta));
+//			memcpy(myblock+memUsed, temp, sizeof(meta));
 			printf("address after memcpy: %p\n", &temp);
 //			printf("after memcpy, crnt size = %d\n", crnt->size);
 			//creates a pointer to the struct in order to add it to the end of the link. 
