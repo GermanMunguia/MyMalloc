@@ -23,18 +23,63 @@ void myfree(void* ptr, char* file, int line) {
 	//run through the meta data, check if given pointer exist or is being used. 
 	void* ptrBlock = myblock; 
 	int memSize = 0; 
+	//create a way to access the previous metadata.
+	meta *prev = NULL; 
 	for(meta *crnt = ptrBlock; crnt != NULL; crnt = crnt->next ) {
-		printf("crnt ptr located at: %p\n", &crnt);
-		printf("	inUse: %p\n", (&crnt->inUse));
-		printf("	size: %p	size=%d\n", &crnt->size, crnt->size);
-		printf("	next: %p\n", &crnt->next);
-		printf("	should be:%p\n", (myblock+memSize) );
-		printf("	memSize: %d\n", memSize);	
-		memSize = memSize + sizeof(meta) + crnt->size;
+			void *ptrCrnt = &crnt->inUse; 	
+			printf("	COMPARING 	%p to %p\n\n", ptrCrnt+sizeof(meta), ptr );	
+			//the ptr that was called on is found, check if it can be freed or not
+			if((ptrCrnt+sizeof(meta)) == ptr) {
+
+				//Free it since it is inUse
+				if(crnt->inUse == 1) {
+					if(DEBUG) {
+						printf("\n\nThe pointer of size %d was found and freed\n\n", crnt->size);
+					}
+					crnt->inUse = 0; 
+					
+					//Now check for other possible neighboring Free block to merge with. 
+					if(prev != NULL) {
+						//TODO
+					{
+
+					if(crnt->next !- NULL) {
+						//TODO
+					}
+
+						
+					return;
+				}	
+				//(2)The pointer is not being used. 
+				else{
+					if(DEBUG) {
+						 printf("\n\nThe pointer of size %d was found, but NOT freed as it is not inUse\n\n", crnt->size); 
+					}
+					return; 
+				}
+
+			}
+			//move the previous foward
+			prev = crnt; 
+
+		if(DEBUG) {
+			printf("crnt ptr located at: %p\n", &crnt);
+			printf("	inUse: %p\n", (&crnt->inUse));
+			printf("	size: %p	size=%d\n", &crnt->size, crnt->size);
+			printf("	next: %p\n", &crnt->next);
+			printf("	should be:%p\n", (myblock+memSize) );
+			printf("	memSize: %d\n", memSize);	
+			memSize = memSize + sizeof(meta) + crnt->size;
+		}
 	}
 
 
+	//(3) the pointer was not found.
+	if(DEBUG) {
+	 printf("\n\nThe pointer was never found\n\n");  
+	}	
 }
+
 
 //return a void pointer 
 void* mymalloc(size_t size, char* file, int line) {
@@ -51,17 +96,6 @@ void* mymalloc(size_t size, char* file, int line) {
 		front->next = NULL;
 		void* ptr = myblock+sizeof(meta); 
 		printf("first meta located at: %p\n", &front);
-		/*
-		meta front;
-		front.inUse = 1; 
-		front.size = size;
-	       	front.next = NULL; 	
-		printf("size of meta: %lu\n", sizeof(front));
-		//memcopy the struct onto the array
-		memcpy(myblock, &front, sizeof(front));
-		//create the unspecified pointer that will be returned for the user. 
-		void* ptr = myblock+sizeof(front);
-		*/
 
 		if(DEBUG) {
 			printf("	BLOCK BEINGS: %p	Ends: %p\n", myblock, myblock+4096);
@@ -83,7 +117,7 @@ void* mymalloc(size_t size, char* file, int line) {
 		
 		//If unused then check if there is enough memory to store inside; 
 		if(crnt->inUse == 0) {
-			//TODOOOO
+			//TODO
 
 		}
 

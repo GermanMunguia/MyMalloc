@@ -29,7 +29,11 @@ int main() {
 	}
 
 	free(ptr3);
-			
+	free(ptr3);
+	int p1 = 2;	
+	int *p = &p1; 
+	free(p);
+
 
 	printf("pointer to ptr %p\n", ptr);
        	printf("pointer to ptr2 %p\n", ptr2);
