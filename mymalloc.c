@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "mymalloc.h"
 #define DEBUG 1
+#define CLEAN 1 
 
 //struct that will hold metadata
 typedef struct meta { 
@@ -17,6 +18,7 @@ static char myblock[4096];
 void myfree(void* ptr, char* file, int line) {
 	//(1) if null, do nothing
 	if(ptr == NULL) {
+		printf("Invalid call to free\nfile:%s\nline:%d\n", file, line);
 		return; 
 	}
 	
@@ -36,15 +38,98 @@ void myfree(void* ptr, char* file, int line) {
 					if(DEBUG) {
 						printf("\n\nThe pointer of size %d was found and freed\n\n", crnt->size);
 					}
+					//sets the values of the return pointers to 0. 
+					if(CLEAN) {
+
+						for(int i = (memSize+sizeof(meta)); i < (memSize+crnt->size+sizeof(meta)); i++) {
+							myblock[i] = 0; 
+						}
+					}
+
 					crnt->inUse = 0; 
+
+					//Now check for other possible neighboring Free block to merge with.
 					
-					//Now check for other possible neighboring Free block to merge with. 
+					//the free is between two other freed metadata.  
+					if(prev != NULL && crnt->next != NULL) {
+						if(prev->inUse == 0 && crnt->next->inUse == 0) {
+							if(DEBUG) {
+								printf("The block is inbetween two freed blocks, merging all three\n");
+							}
+
+							int oldSize = crnt->size; 
+							int oldSize2 = prev->size; 
+							int oldSize3 = crnt->next->size; 
+
+							prev->size = (prev->size+sizeof(meta)+sizeof(meta)+crnt->size+crnt->next->size);
+							prev->next = crnt->next->next;
+						       	crnt = prev; 	
+
+
+							if(CLEAN) {
+								printf("memSize: %d, crntSize: %d, oldSize: %d  %d   %d \n", memSize, crnt->size, oldSize, oldSize2, oldSize3);
+								for(int i = (memSize - oldSize2); i < (memSize - oldSize2 + sizeof(meta)+oldSize2+sizeof(meta)+oldSize+oldSize3); i++) {
+									myblock[i] = 0; 
+								}
+							}
+
+							return;
+
+						}
+					}
+
 					if(prev != NULL) {
-						//TODO
+
+						//the previous block is also free, merge them 
+						if(prev->inUse == 0) {
+							if(DEBUG) {
+								printf("The previous block was also free, both are merged\n");
+							}
+						
+							int oldSize = crnt->size; 
+
+							//merge the previous block
+							prev->size = (prev->size+sizeof(meta)+crnt->size); 
+							prev->next = prev->next->next; 
+							crnt = prev; 
+
+
+							if(CLEAN) {
+
+								for(int i = (memSize); i < (memSize+sizeof(meta)+oldSize); i++) {
+									myblock[i] = 0; 
+								}
+							}
+
+							return; 
+							
+						}
+						
+
 					}
 
 					if(crnt->next != NULL) {
-						//TODO
+						//the next block is also not in use, therefore merge it
+						if(crnt->next->inUse == 0) {
+							if(DEBUG) {
+								printf("The next block is also free, both are merged\n");
+							}
+							
+							int oldSize = crnt->next->size; 
+
+							crnt->size = (crnt->size+sizeof(meta)+crnt->next->size); 
+							crnt->next = crnt->next->next; 
+
+							printf("memSize: %d, crntSize: %d, oldSize: %d\n", memSize, crnt->size, oldSize);
+							if(DEBUG) {
+								for(int i = (memSize+sizeof(meta)); i < (memSize+sizeof(meta)+sizeof(meta)+(crnt->size-oldSize)); i++) {
+									myblock[i] = 0;
+								}	
+							}
+
+							return; 
+							
+						}
 					}
 
 						
@@ -52,9 +137,7 @@ void myfree(void* ptr, char* file, int line) {
 				}	
 				//(2)The pointer is not being used. 
 				else{
-					if(DEBUG) {
-						 printf("\n\nThe pointer of size %d was found, but NOT freed as it is not inUse\n\n", crnt->size); 
-					}
+					printf("Invalid call to free, pointer already has been freed\nfile:%s\nline:%d\n", file, line);
 					return; 
 				}
 
@@ -78,6 +161,7 @@ void myfree(void* ptr, char* file, int line) {
 	if(DEBUG) {
 	 printf("\n\nThe pointer was never found\n\n");  
 	}	
+	printf("Invalid call to free\nfile:%s\nline:%d\n", file, line);
 }
 
 
@@ -122,19 +206,51 @@ void* mymalloc(size_t size, char* file, int line) {
 			
 			//it is just the right size
 			if(size == crnt->size) {
-				
+		
+				if(DEBUG) {
+					printf("A freed block was available of the same size\n");
+				}
+
+				//make it inUse and return the pointer. 
+				crnt->inUse = 1;
+			       	void* r = crnt; 	
+				return (r+sizeof(meta)); 		
 			}
 
-			//the size is less than is available, split into anothert block
+			//the size that is asked for is less than is available, split into another block
 			if(size < crnt->size) {
 
 				//there is not enough room to hold another meta data block, return the pointer with extra space
 				if(size + sizeof(meta) > crnt->size) {
-				
+					crnt->inUse = 1;
+			       		void* r = crnt; 	
+					return (r+sizeof(meta)); 
 				}
 				
-				//make another block
+				//split into two block of meta data
 				
+				if(DEBUG) {
+					printf("SPLITTING A BLOCK INTO TWO, starting:%ld \n", (memUsed - crnt->size - sizeof(meta)));
+				}
+		
+				if(DEBUG) {
+					printf("Attempted to create a new metadata at %ld   of size %ld\n", memUsed-crnt->size+size, (crnt->size-sizeof(meta)-size));
+				}
+				
+				//create the new block at the appropriate location	
+				meta *temp = (meta*) (myblock+memUsed-crnt->size+size);
+				//since it will be empty set it to free
+				temp->inUse = 0; 
+				temp->size = (crnt->size-sizeof(meta)-size); 
+				temp->next = crnt->next;
+				crnt->next = temp; 
+			
+				//return the pointer at the same spot since that did not change. 
+				crnt->size = size;
+				crnt->inUse = 1; 
+				void* r = crnt;
+				return (r+sizeof(meta));
+
 			}
 			
 
@@ -191,7 +307,7 @@ void* mymalloc(size_t size, char* file, int line) {
 	
 	
 
-	//if this is reached then it was not able to be allocated, due to a lack of memory 
+	//this should not be reached.  
 	return NULL;  	
 }
 
