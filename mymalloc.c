@@ -121,11 +121,9 @@ void myfree(void* ptr, char* file, int line) {
 							crnt->size = (crnt->size+sizeof(meta)+crnt->next->size); 
 							crnt->next = crnt->next->next; 
 
-							if(DEBUG) {
 								for(int i = (memSize+sizeof(meta)); i < (memSize+sizeof(meta)+sizeof(meta)+(crnt->size-oldSize)); i++) {
 									myblock[i] = 0;
 								}	
-							}
 
 							return; 
 							
