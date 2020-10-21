@@ -2,23 +2,26 @@
 #include <string.h>
 #include <stdlib.h>
 #include "mymalloc.h"
-#define DEBUG 1
+#define DEBUG 0
 #define CLEAN 1 
 
-//struct that will hold metadata
-typedef struct meta { 
-	int inUse; 
-	int size; 
-	struct meta *next; 
-} meta;
 
 static char myblock[4096];
 
+void printMem() {
+	printf("\n");
+	for(int i = 0; i < 4096; i++) {
+			printf("%d ", myblock[i]);
+	}
+	printf("\n\n");
+}
+
 //free the ptr that was previously allocated with mymalloc, check for all possible errors. 
 void myfree(void* ptr, char* file, int line) {
-	//(1) if null, do nothing
+
+
+	//(1) if null, do nothing, not error message needed. 
 	if(ptr == NULL) {
-		printf("Invalid call to free\nfile:%s\nline:%d\n", file, line);
 		return; 
 	}
 	
@@ -29,7 +32,6 @@ void myfree(void* ptr, char* file, int line) {
 	meta *prev = NULL; 
 	for(meta *crnt = ptrBlock; crnt != NULL; crnt = crnt->next ) {
 			void *ptrCrnt = &crnt->inUse; 	
-			printf("	COMPARING 	%p to %p\n\n", ptrCrnt+sizeof(meta), ptr );	
 			//the ptr that was called on is found, check if it can be freed or not
 			if((ptrCrnt+sizeof(meta)) == ptr) {
 
@@ -67,7 +69,6 @@ void myfree(void* ptr, char* file, int line) {
 
 
 							if(CLEAN) {
-								printf("memSize: %d, crntSize: %d, oldSize: %d  %d   %d \n", memSize, crnt->size, oldSize, oldSize2, oldSize3);
 								for(int i = (memSize - oldSize2); i < (memSize - oldSize2 + sizeof(meta)+oldSize2+sizeof(meta)+oldSize+oldSize3); i++) {
 									myblock[i] = 0; 
 								}
@@ -120,7 +121,6 @@ void myfree(void* ptr, char* file, int line) {
 							crnt->size = (crnt->size+sizeof(meta)+crnt->next->size); 
 							crnt->next = crnt->next->next; 
 
-							printf("memSize: %d, crntSize: %d, oldSize: %d\n", memSize, crnt->size, oldSize);
 							if(DEBUG) {
 								for(int i = (memSize+sizeof(meta)); i < (memSize+sizeof(meta)+sizeof(meta)+(crnt->size-oldSize)); i++) {
 									myblock[i] = 0;
@@ -152,21 +152,34 @@ void myfree(void* ptr, char* file, int line) {
 			printf("	next: %p\n", &crnt->next);
 			printf("	should be:%p\n", (myblock+memSize) );
 			printf("	memSize: %d\n", memSize);	
-			memSize = memSize + sizeof(meta) + crnt->size;
 		}
+			//update memSize
+		 	memSize = memSize + sizeof(meta) + crnt->size;
 	}
 
 
 	//(3) the pointer was not found.
 	if(DEBUG) {
-	 printf("\n\nThe pointer was never found\n\n");  
+	 printf("The pointer was never found\n");  
 	}	
-	printf("Invalid call to free\nfile:%s\nline:%d\n", file, line);
+	printf("Invalid call to free, pointer was never malloced\n file:%s\n line:%d\n", file, line);
 }
 
 
 //return a void pointer 
 void* mymalloc(size_t size, char* file, int line) {
+
+			
+	//if the size is greater than 4096 minus the size of meta, there is not enough space
+	if(size > (4096-sizeof(meta))) {
+		printf("Invalid call to malloc\n file:%s\n line:%d\n", file,line);
+		return NULL;
+	}
+
+	//if they malloc a size = 0, it is not an error, just returns a null pointer
+	if(size == 0) {
+		return NULL; 
+	}
 
 	//create a pointer to the begining of the block, if the has a size initiallized to zero, then it must be empty and it is the first call to malloc
 	void *f = myblock;
@@ -179,10 +192,10 @@ void* mymalloc(size_t size, char* file, int line) {
 		front->size = size; 
 		front->next = NULL;
 		void* ptr = myblock+sizeof(meta); 
-		printf("first meta located at: %p\n", &front);
 
 		if(DEBUG) {
-			printf("	BLOCK BEINGS: %p	Ends: %p\n", myblock, myblock+4096);
+			printf("first meta located at: %p\n", &front);
+			printf("Block begins: %p	Ends: %p\n", myblock, myblock+4096);
 		}
 		
 	       	return ptr;	
@@ -197,7 +210,7 @@ void* mymalloc(size_t size, char* file, int line) {
 
 		//keep track of the total mem used that way the next meta location is known if one needs to be made.  
 		memUsed= memUsed + crnt->size + sizeof(meta);
-		printf("block size: %d inUse: %d      block+meta %ld\n", crnt->size, crnt->inUse, crnt->size+sizeof(meta));	
+		//printf("block size: %d inUse: %d      block+meta %ld\n", crnt->size, crnt->inUse, crnt->size+sizeof(meta));	
 		
 		//If unused then check if there is enough memory to store inside; 
 		//If the block is much larger, break it and create another meta data block to account for the rest of the freed space. 
@@ -259,49 +272,40 @@ void* mymalloc(size_t size, char* file, int line) {
 		//The last meta data was reached, a new block must be allocated. 
 		if(crnt->next == NULL) {
 
-			//check if there is enough space left 
-			printf("Total space used so far: %d\n", memUsed);
-			
+			//check if there is enough space left
+			if(DEBUG) { 
+				printf("Total space used so far: %d\n", memUsed);
+			}
+
 			if(memUsed + size + sizeof(meta) > 4096) {
-				printf("NOT ENOUGH SPACE\n");
+				printf("Not enough memory avaliable for malloc call\nfile:%s\nline%d\n", file, line);
 				return NULL;
 			}
 
 			//There is enough memory, create more metadata to account for it.
-
-			printf("        New Meta appended after %d for size %ld at index: %d\n", crnt->size, size, memUsed);	
+			if(DEBUG) {	
+				printf("        New Meta appended after %d for size %ld at index: %d\n", crnt->size, size, memUsed);	
+				printf("being made in address: %p with a memUsed of %d\n", myblock+memUsed, memUsed);
+			}
 			//MUST USE parenthesis for addition, otherwise it will add by a size of the struct. 		
 			meta *temp = (meta*) (myblock+memUsed);
 		       	
 
-		       	printf("being made in address: %p with a memUsed of %d\n", myblock+memUsed, memUsed);	
 			temp->size = size;
 			temp->inUse = 1;
 			temp->next = NULL;
 		 	//copy the mem to the array
-			printf("memcpy to address: %p\n", &temp);
-//			memcpy(myblock+memUsed, temp, sizeof(meta));
-			printf("address after memcpy: %p\n", &temp);
-//			printf("after memcpy, crnt size = %d\n", crnt->size);
+			if(DEBUG) { 
+				printf("memcpy to address: %p\n", &temp);
+				printf("address after memcpy: %p\n", &temp);
+			}
 			//creates a pointer to the struct in order to add it to the end of the link. 
 			crnt->next = temp;
-//			printf("Now crnt size = %d and next size = %d\n", crnt->size, crnt->next->size);
+			
 			//return the unspecified pointer.
-			
-			if(DEBUG) {
-				for(int i = 0; i < 4096; i++) {
-					printf(" %d", myblock[i]);
-				}
-				printf("\n");
-	
-			}
-			
 			void *ptr = myblock+memUsed+sizeof(meta); 
 			return ptr; 
-			
 		}
-		
-
 		
 	}
 	
