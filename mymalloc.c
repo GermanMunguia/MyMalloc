@@ -41,9 +41,9 @@ void myfree(void* ptr, char* file, int line) {
 					//Now check for other possible neighboring Free block to merge with. 
 					if(prev != NULL) {
 						//TODO
-					{
+					}
 
-					if(crnt->next !- NULL) {
+					if(crnt->next != NULL) {
 						//TODO
 					}
 
@@ -116,8 +116,27 @@ void* mymalloc(size_t size, char* file, int line) {
 		printf("block size: %d inUse: %d      block+meta %ld\n", crnt->size, crnt->inUse, crnt->size+sizeof(meta));	
 		
 		//If unused then check if there is enough memory to store inside; 
+		//If the block is much larger, break it and create another meta data block to account for the rest of the freed space. 
+		////if the remaining block is not large enough to hold a meta data block, then return the extra space since it is useless anyways. 
 		if(crnt->inUse == 0) {
-			//TODO
+			
+			//it is just the right size
+			if(size == crnt->size) {
+				
+			}
+
+			//the size is less than is available, split into anothert block
+			if(size < crnt->size) {
+
+				//there is not enough room to hold another meta data block, return the pointer with extra space
+				if(size + sizeof(meta) > crnt->size) {
+				
+				}
+				
+				//make another block
+				
+			}
+			
 
 		}
 
