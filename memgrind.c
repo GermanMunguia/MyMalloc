@@ -8,13 +8,12 @@ int main() {
 
 ///*
 	struct timeval timer;
-
 	gettimeofday(&timer, NULL); 
-
-
 	time_t startTime = timer.tv_sec;
        	time_t startTime2 = timer.tv_usec; 	
-	printf("time: %ld\n", timer.tv_sec);
+	double times[50]; 
+
+/*
 
 	for(int workload = 0; workload < 1; workload++) {
 
@@ -106,30 +105,28 @@ int main() {
 
 		//test case D
 			//
+		printMem(); 
+		malloc(4000);
 
 
+		//time the workload	
+		gettimeofday(&timer, NULL);
+		time_t micro = (timer.tv_usec - startTime2); 
+		time_t seconds = (timer.tv_sec - startTime); 
+		double toSeconds = micro;
+		toSeconds /= 1000000;
+		times[workload] = (toSeconds+seconds);	
+		//printMem();
 	}
 
-	
-	gettimeofday(&timer, NULL);
-
-	time_t micro = (timer.tv_usec - startTime2); 
-	time_t seconds = (timer.tv_sec - startTime); 
-	
-	printf("seconds %ld\n", seconds);
-	printf("microseconds %ld\n", micro); 
-	double t = micro;
-      	t /= 1000000; 	
-	 printf("microseconds to seconds %f\n", t);
 
 
-//	gettimeofday(&timer,NULL); 
-//	printf("time: %ld\n", timer.tv_sec);
-	
-//	printf("\n TOOK %ld\n", (startTime-timer.tv_sec));
+	for(int i = 0; i < 1; i++) {
+		printf("Time: %f\n", times[i]);
+	}
+*/
 
 
-/*
 	char* ptr = malloc(10*sizeof(char));
 	for(int i = 0; i < 10; i++) {
 		ptr[i] = 'a'; 
@@ -140,24 +137,25 @@ int main() {
 		
 	}
 
+
 	int* ptr3 = malloc(8*sizeof(int));
 	for(int i = 0; i < 8; i++) {
 		ptr3[i] = 50; 
 		
 	}
-	
-	printMem(); 
-
-//	free(ptr2);
 
 
- 
 	char* ptr4 = malloc(22*sizeof(char));
 	for(int i = 0; i < 22; i++) {
 		ptr4[i] = 'y'; 
 		
 	}
 
+//	free(ptr2); 
+
+	printMem();
+
+/*
 	char* ptr5to2 = malloc(2*sizeof(char));
 
 	for(int i = 0; i < 2; i++) {
