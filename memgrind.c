@@ -13,7 +13,7 @@ int main() {
        	time_t startTime2 = timer.tv_usec; 	
 	double times[50]; 
 
-/*
+
 
 	for(int workload = 0; workload < 1; workload++) {
 
@@ -105,9 +105,6 @@ int main() {
 
 		//test case D
 			//
-		printMem(); 
-		malloc(4000);
-
 
 		//time the workload	
 		gettimeofday(&timer, NULL);
@@ -124,19 +121,20 @@ int main() {
 	for(int i = 0; i < 1; i++) {
 		printf("Time: %f\n", times[i]);
 	}
-*/
 
 
+/*
 	char* ptr = malloc(10*sizeof(char));
 	for(int i = 0; i < 10; i++) {
 		ptr[i] = 'a'; 
 	}
+	
 	char* ptr2 = malloc(20*sizeof(char));
 	for(int i = 0; i < 20; i++) {
 		ptr2[i] = 'b'; 
 		
 	}
-
+	
 
 	int* ptr3 = malloc(8*sizeof(int));
 	for(int i = 0; i < 8; i++) {
@@ -150,17 +148,10 @@ int main() {
 		ptr4[i] = 'y'; 
 		
 	}
-
-//	free(ptr2); 
+	
+	//free(ptr2); 
 
 	printMem();
-
-/*
-	char* ptr5to2 = malloc(2*sizeof(char));
-
-	for(int i = 0; i < 2; i++) {
-		ptr5to2[i] = 45; 
-	}
 
 	char* ptr6 = malloc(20*sizeof(char));	
 	for(int i = 0; i < 20; i++) {
@@ -184,7 +175,7 @@ int main() {
 	printMem();
 
 	char* ptr8 = malloc(120*sizeof(char));
-
+*/
 //	printMem();
 
 //	free(ptr3);
@@ -192,6 +183,6 @@ int main() {
 //	int p1 = 2;	
 //	int *p = &p1; 
 //	free(p);
-*/
+
 
 }

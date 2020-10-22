@@ -9,6 +9,11 @@
 static char myblock[4096];
 
 void printMem() {
+
+	void* ptrBlock = myblock;
+	meta *crnt = ptrBlock; 
+	
+	printf("\nSize of first block: %d\n", crnt->size);
 	printf("\n");
 	for(int i = 0; i < 4096; i++) {
 			printf("%d ", myblock[i]);
@@ -184,7 +189,7 @@ void* mymalloc(size_t size, char* file, int line) {
 	meta *isEmpty = f; 
 	//the array is empty
 	if(isEmpty->size == 0) {
-		//create a new struct to hold the first block allocated. 
+		//create a new struct to hold the first block allocated and a second to watch over the remaining unused space. 
 		meta* front = (meta*) myblock; 
 		front->inUse = 2; 
 		front->size = size; 
@@ -195,7 +200,19 @@ void* mymalloc(size_t size, char* file, int line) {
 			printf("first meta located at: %p\n", &front);
 			printf("Block begins: %p	Ends: %p\n", myblock, myblock+4096);
 		}
-		
+	
+		//if the entire array is being used, then there is nothing left over. 
+		if(sizeof(meta)+size == 4096) {
+			return ptr; 
+		}
+
+		//the metadata for the remaining memory which will not be in use
+		meta* leftover = (meta*) (myblock+sizeof(meta)+size); 
+		leftover->inUse = 1; 
+		leftover->size = (4096-sizeof(meta)-size); 
+		leftover->next = NULL;
+		front->next = leftover; 
+
 	       	return ptr;	
 	}
 
