@@ -1,0 +1,8 @@
+Workload D:
+	This workload allocates 315 different 1 byte pointers. With a total of 4096 bytes and a metadata that takes up 12 bites, this is the maximum numbers of pointers that can be allocated with mymalloc
+After allocating each individual one, the last pointer will return an additional 1 byte since the space cannot be used for anything else anyways. They are all stored in an array and myfree is called on each.   
+
+
+Workload E:
+	This workload allocates 256 different integer size pointers (4 bytes), as it is the maximum amount. Then only every other is freed. This leaves two freed spaces next to one another. Then the remaining
+blocks are freed backwards. This was made into a test case since it makes sure that myfree can merge the multiple unused pointer into a larger one so that the memory can be reused with mymalloc.  
