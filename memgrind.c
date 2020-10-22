@@ -6,16 +6,13 @@
 
 int main() {
 
-///*
 	struct timeval timer;
 	gettimeofday(&timer, NULL); 
 	time_t startTime = timer.tv_sec;
        	time_t startTime2 = timer.tv_usec; 	
-	double times[50]; 
+	double times[50];
 
-
-
-	for(int workload = 0; workload < 1; workload++) {
+	for(int workload = 0; workload < 50; workload++) {
 
 		//test case A
 			//malloc one byte and free it 120 times
@@ -102,9 +99,37 @@ int main() {
 		}
 
 
-
 		//test case D
-			//
+			//malloc 315 total 1 byte pointers and store them all at once, then free them. 
+		void* arr3[315]; 
+		for(int i = 0; i < 315; i++) {
+			arr3[i] = malloc(1); 
+		}
+	
+		for(int i = 0; i < 315; i++) {
+			free(arr3[i]);
+		}
+
+		//test case E
+			//malloc 256 total int sized byte pointers, then free each odd numbered index, then free each even index pointer in backwards order
+
+		void* arr4[256]; 
+		for(int i = 0; i < 256; i++) {
+			arr4[i] = malloc(1*sizeof(int));
+		}
+		//now free the odd 
+		for(int i = 0; i < 256; i++) {
+			if(i % 2 == 1) {
+				free(arr4[i]);
+			}
+		}
+
+		//now the even in backwards order
+		for(int i = 255; i >= 0; i--) {
+			if(i % 2 == 0) {
+				free(arr4[i]);
+			}
+		}
 
 		//time the workload	
 		gettimeofday(&timer, NULL);
@@ -113,76 +138,14 @@ int main() {
 		double toSeconds = micro;
 		toSeconds /= 1000000;
 		times[workload] = (toSeconds+seconds);	
-		//printMem();
 	}
 
 
-
-	for(int i = 0; i < 1; i++) {
-		printf("Time: %f\n", times[i]);
+	double AverageTime = 0; 
+	for(int i = 0; i < 50; i++) {
+		AverageTime += times[i]; 
+		printf("Workload # %d : %f seconds\n", i+1, times[i]);
 	}
-
-
-/*
-	char* ptr = malloc(10*sizeof(char));
-	for(int i = 0; i < 10; i++) {
-		ptr[i] = 'a'; 
-	}
-	
-	char* ptr2 = malloc(20*sizeof(char));
-	for(int i = 0; i < 20; i++) {
-		ptr2[i] = 'b'; 
-		
-	}
-	
-
-	int* ptr3 = malloc(8*sizeof(int));
-	for(int i = 0; i < 8; i++) {
-		ptr3[i] = 50; 
-		
-	}
-
-
-	char* ptr4 = malloc(22*sizeof(char));
-	for(int i = 0; i < 22; i++) {
-		ptr4[i] = 'y'; 
-		
-	}
-	
-	//free(ptr2); 
-
-	printMem();
-
-	char* ptr6 = malloc(20*sizeof(char));	
-	for(int i = 0; i < 20; i++) {
-		ptr6[i] = 46; 
-	}
-
-	char* ptr7 = malloc(2*sizeof(char)); 
-	for(int i = 0; i < 2; i++) {
-		ptr7[i] = 47;
-	}
-
-	free(ptr2);
-
-	char* ptr10 = malloc(130*sizeof(char)); 
-
-	free(ptr4);
-	 char* ptr9 = malloc(120*sizeof(char));	
-//
-	free(ptr3); 
-
-	printMem();
-
-	char* ptr8 = malloc(120*sizeof(char));
-*/
-//	printMem();
-
-//	free(ptr3);
-//	free(ptr3);
-//	int p1 = 2;	
-//	int *p = &p1; 
-//	free(p);
-
+	printf("Total time: %f\nAverage Time: %f\n", AverageTime, (AverageTime/50));
 
 }
