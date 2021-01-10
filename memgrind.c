@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include "mymalloc.h"
 
+//implementate test cases to run. 
 int main() {
 
 	struct timeval timer;
